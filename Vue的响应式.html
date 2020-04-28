@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vue的响应式</title>
+</head>
+<body>
+<!--
+1. app.message 修改数据，Vue 内部是如何监听 message 数据
+* Object.defineProperty -> 监听对象属性的改变
+2. 当数据发生改变，Vue 是如何知道要通知哪些人界面发生刷新
+* 发布订阅者模式
+-->
+<script>
+  // 正则匹配 {{}} 内的内容
+  const reg = /\{\{(.+)}\\}/
+  // reg.test(str) // 检查正则是否包含
+  // RegExp.$1.trim()  // 获取第一个 () (第一组) 的内容
+
+
+  const obj = {
+    message: '哈哈哈',
+    name: 'why'
+  }
+
+  Object.keys(obj).forEach(key => {
+    let value = obj[key]
+
+
+    Object.defineProperty(obj, key, {
+      set(newValue) {
+        console.log(`监听到${key}的改变`)
+        // 改变之后将通知用到此值的地方
+        // 根据解析 html 获取哪里用了此属性
+        value = newValue
+      },
+      get() {
+        console.log(`获取${key}对应的值`)
+        // 谁用了谁调用 get
+        return value
+      }
+    })
+  })
+
+  // obj.name = '啊啊啊'
+  // 发布者订阅者
+  class Dep {
+    constructor() {
+      this.subs = []
+    }
+
+    addSub(watcher) {
+      this.subs.push(watcher)
+    }
+
+    notify() {
+      this.subs.forEach(item => {
+        item.update()
+      })
+    }
+  }
+
+  class Watcher {
+    constructor(name) {
+      this.name = name
+    }
+
+    update() {
+      console.log(`${this.name}发生了更新`)
+    }
+  }
+
+  const dep = new Dep()
+  const w1 = new Watcher('张三')
+  dep.addSub(w1)
+  const w2 = new Watcher('李四')
+  dep.addSub(w2)
+  const w3 = new Watcher('王五')
+  dep.addSub(w3)
+  dep.notify()
+</script>
+
+<div id="app">
+  {{message}}
+</div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script>
+  const app = new Vue({
+    el: "#app",
+    data: {
+      message: "测测测"
+    }
+  })
+</script>
+</body>
+</html>

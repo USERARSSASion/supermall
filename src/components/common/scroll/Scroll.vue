@@ -23,7 +23,13 @@ export default {
     pullUpLoad: {
       type: Boolean,
       default: false
-    }
+    },
+    data: {
+      type: Array,
+      default: () => {
+        return []
+      }
+    },
   },
   mounted() {
     this.scroll = new BSCroll(this.$refs.wrapper, {
@@ -58,6 +64,11 @@ export default {
     },
     getScrollY() {
       return this.scroll ? this.scroll.y : 0
+    }
+  },
+  watch: {
+    data() {
+      setTimeout(this.refresh, 20)
     }
   }
 }
